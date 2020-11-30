@@ -186,6 +186,12 @@ export default defineConfig({
                   path: '/list/card-list',
                   component: './list/card-list',
                 },
+                {
+                  name: 'task-list',
+                  icon: 'smile',
+                  path: '/list/task-list',
+                  component: './list/task-list',
+                },
               ],
             },
             {

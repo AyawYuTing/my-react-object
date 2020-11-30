@@ -14,10 +14,10 @@ export default {
     },
   },
   test: {
-    '/api/': {
+    '/api': {
       target: 'https://preview.pro.ant.design',
       changeOrigin: true,
-      pathRewrite: { '^/api/': '' },
+      pathRewrite: { '^/api': '' },
     },
   },
   pre: {
