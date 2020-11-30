@@ -3,7 +3,7 @@ import { queryTaskList } from './service'
 
 
 export interface StateType {
-    list?: [];
+    taskListData?: [];
 }
 export interface TaskListModelType{
     namespace: string;
@@ -18,7 +18,7 @@ export interface TaskListModelType{
 const Model : TaskListModelType = {
     namespace : 'task',
     state : {
-        list:undefined
+        taskListData:undefined
     },
     effects:{
         // @param payload 参数
@@ -26,13 +26,13 @@ const Model : TaskListModelType = {
         // @param put 发出一个 Action，类似于 dispatch 将服务端返回的数据传递给上面的state
         *getList({ payload,callback }, { call, put }) {
             const response = yield call(queryTaskList, payload);
-            if(response.code===0){
+            if(response.retCode===0){
                 yield put({
                     type: 'changeTaskList',
                     payload: response,
                 });
                 if(callback){
-                    callback(response.list)
+                    callback(response.data)
                 }
             }   
             
@@ -42,7 +42,7 @@ const Model : TaskListModelType = {
         changeTaskList(state,action) {
             return {
                 ...state,
-                list:action.payload.list || []
+                taskListData:action.payload.data || []
             }
         }
     }
