@@ -1,10 +1,13 @@
 import React,{ useState,useRef, useEffect } from 'react'
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
 import { Dispatch, Link, connect } from 'umi';
-import { Table, Button } from 'antd';
+import { Table, Button,Form,Input,Select ,Row, Col,DatePicker  } from 'antd';
+import { SearchOutlined,RedoOutlined,CheckOutlined,PauseOutlined,DeleteOutlined } from '@ant-design/icons';
 import { TaskListItem,TaskListPagination } from './data.d'
-import { number } from 'prop-types';
-
+import styles from './style.less';
+import { BackgroundColor } from 'chalk';
+const { Option } = Select;
+const { RangePicker } = DatePicker;
 interface TaskProps {
     dispatch: Dispatch;
 }
@@ -12,25 +15,31 @@ interface TaskProps {
 const TaskList : React.FC<TaskProps> = (props) =>{
     const { dispatch } = props
     const [taskList,setTaskList] = useState([])
-    const [pagination,setPagination] = useState<TaskListPagination>({ page:1,limit:10,total:0 })
-    
+    const [page,setPage] = useState(1)
+    const [total,setTotal] = useState(0)
+    const [limit,setLimit] = useState(10)
+    // const [pagination,setPagination] = useState<TaskListPagination>({ page:1,limit:10,total:0 })
+    const [selectionType,setSelectionType] = useState('checkbox');
+    const [selectedRowKeys,setSelectedRowKeys] = useState('')
+    useEffect(() => {
+        getList();
+    },[page,limit]);
     const getList = () => {
         // console.log(1)
         dispatch({
             type: 'task/getList',   //task 为 model 中的namespace，getList为方法名
             payload: {
-                page:pagination.page,
-                limit:pagination.limit,
+                page:page,
+                limit:limit,
                 status:'RP'
             },
             callback:(data)=>{
-                console.log('payload--',pagination)
-                let listData = {
-                    page:data.page,
-                    total:data.total,
-                    limit:data.limit
-                }
                 setTaskList(data.list)
+                
+                if(total===0){
+                    setTotal(data.total)
+                }
+                
                 // setPagination(listData)
             }
         })
@@ -42,7 +51,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
             align:'center',
             render (text:any, record:any, index:any) {
                 return(
-                    <span>{(pagination.page-1)*10+index+1}</span>
+                    <span>{(page-1)*10+index+1}</span>
                  )
             } 
         },
@@ -114,39 +123,232 @@ const TaskList : React.FC<TaskProps> = (props) =>{
             align: 'center',
         },
     ];
-    // const rowSelection = {
-    //     selectedRowKeys,
-    //     onChange: this.onSelectChange,
-    //   };
-    useEffect(() => {
-        getList();
-    },[]);
+
+    const onFinish = () => {
+
+    }
+    const onFinishFailed = () => {
+        
+    }
+    const onTaskStatusChange = () => {
+        
+    }
+    const onTopStatusChange = () => {
+        
+    }
+    const rangeConfig = {
+        rules: [{ type: 'array', required: false, message: 'Please select time!' }],
+      };
+    const rowSelection = {
+        onChange: (selectedRowKeys:any, selectedRows:any) => {
+            console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
+            setSelectedRowKeys(selectedRowKeys)
+        }
+    };
+   
     return(
         <PageContainer>
-            <Table<TaskListItem> 
-            columns={columns} 
-            dataSource={taskList}
-            pagination={{
-                total:pagination.total,
-                pageSizeOptions: ["10", "20", "50"],
-                showTotal: total => `共 ${total} 条`,
-                showSizeChanger: true,
-                // 改变页码时
-                onChange: ((page, pageSize) => {
-                    console.log(page,pageSize)
-                    setPagination({
-                        page:page,
-                        limit:pageSize,
-                        total:pagination.total
-                    })
+            <Form
+                name="basic"
+                initialValues={{ remember: true }}
+                onFinish={onFinish}
+                onFinishFailed={onFinishFailed}
+            >
+                <div className={styles.form}>
+                    <div className={styles.formItem}>
+                        <Form.Item
+                            label="店铺名称"
+                            name="shopName"
+                            rules={[{ required: false, message: '请输入店铺名称' }]}
+                        >
+                            <Input placeholder='请输入店铺名称'/>
+                        </Form.Item>
+                    </div>
+                    <div className={styles.formItem}>
+                        <Form.Item
+                            label="任务单号"
+                            name="shopName"
+                            rules={[{ required: false, message: '请输入任务单号' }]}
+                        >
+                            <Input placeholder='请输入任务单号'/>
+                        </Form.Item>
+                    </div>
+                    <div className={styles.formItem}>
+                        <Form.Item
+                            label="任务状态"
+                            name="shopName"
+                            rules={[{ required: false, message: '请选择任务状态' }]}
+                        >
+                            <Select
+                                placeholder="请选择任务状态"
+                                onChange={onTaskStatusChange}
+                                allowClear
+                            >
+                                <Option value="male">运行&暂停</Option>
+                                <Option value="male">运行</Option>
+                                <Option value="female">暂停</Option>
+                                <Option value="other">草稿</Option>
+                                <Option value="other">终止</Option>
+                            </Select>
+                        </Form.Item>
+                    </div>
+                    <div className={styles.formItem}>
+                        <Form.Item
+                            label="置顶状态"
+                            name="shopName"
+                            rules={[{ required: false, message: '请选择置顶状态' }]}
+                        >
+                            <Select
+                                placeholder="请选择置顶状态"
+                                onChange={onTopStatusChange}
+                                allowClear
+                            >
+                                <Option value="male">已置顶</Option>
+                                <Option value="male">未置顶</Option>
+                            </Select>
+                        </Form.Item>
+                    </div>
+                </div>
+                <div className={styles.form}>
+                    <div className={styles.formItem}>
+                        <Form.Item
+                            label="平台类型"
+                            name="shopName"
+                            rules={[{ required: false, message: '请选择平台类型' }]}
+                        >
+                            <Select
+                                placeholder="请选择平台类型"
+                                onChange={onTaskStatusChange}
+                                allowClear
+                            >
+                                <Option value="male">全部</Option>
+                                <Option value="male">淘宝</Option>
+                                <Option value="female">京东</Option>
+                                <Option value="other">阿里巴巴</Option>
+                                <Option value="other">拼多多</Option>
+                            </Select>
+                        </Form.Item>
+                    </div>
+                    <div className={styles.formItem}>
+                        <Form.Item
+                            label="任务类型"
+                            name="shopName"
+                            rules={[{ required: false, message: '请选择任务类型' }]}
+                        >
+                            <Select
+                                placeholder="请选择任务类型"
+                                onChange={onTopStatusChange}
+                                allowClear
+                            >
+                                <Option value="male">全部</Option>
+                                <Option value="male">现付单</Option>
+                                <Option value="male">隔日单</Option>
+                                <Option value="male">浏览单</Option>
+                            </Select>
+                        </Form.Item>
+                    </div>
+                    <div className={styles.formItem}>
+                        <Form.Item
+                            label="剩余数量"
+                            name="shopName"
+                            rules={[{ required: false, message: '请输入剩余数' }]}
+                        >
+                            <Input placeholder='请输入剩余数'/>
+                        </Form.Item>
+                    </div>
+                    <div className={styles.formItem}>
+                        <Form.Item
+                            label="商家名称"
+                            name="shopName"
+                            rules={[{ required: false, message: '请输入商家名称' }]}
+                        >
+                            <Input placeholder='请输入商家名称'/>
+                        </Form.Item>
+                    </div>
                     
-                    getList()
-                }),
-                // pageSize 变化的回调
-                onShowSizeChange: (page) => {
-                    console.log(page)
-                }
-            }}
+                </div>
+                <div  className={styles.form}>
+                    
+                    <div className={styles.formItem}>
+                        <Form.Item name="range-time-picker" label="发布时间" {...rangeConfig}>
+                            <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" />
+                        </Form.Item>
+                    </div>
+                    <div className={styles.formItem}>
+                        <Form.Item
+                            label="商品类目"
+                            name="shopName"
+                            rules={[{ required: false, message: '请输入商品类目' }]}
+                        >
+                            <Input placeholder='请输入商品类目'/>
+                        </Form.Item>
+                    </div>
+                </div>
+                <div className={styles.form}>
+                    {/* <div className={ selectedRowKeys?'':styles.hide}>
+                        <div className={styles.formButtonLeft}>
+                            <div className={styles.btnItemLeft}>
+                                <Button  style={{backgroundColor:'#00897b',color:'#ffffff',border:'none'}} icon={<CheckOutlined />}>批量发布</Button>
+                            </div>
+                            <div className={styles.btnItemLeft}>
+                                <Button  style={{backgroundColor:'#ff8f00',color:'#ffffff',border:'none'}}  icon={<PauseOutlined />}>批量暂停</Button>
+                            </div>
+                            <div className={styles.btnItemLeft}>
+                                <Button danger type="primary" icon={<DeleteOutlined />}>删除所选</Button>
+                            </div>
+                        </div>
+                    </div> */}
+                    {selectedRowKeys.length>0?
+                        <div className={styles.formButtonLeft}>
+                            <div className={styles.btnItemLeft}>
+                                <Button  style={{backgroundColor:'#00897b',color:'#ffffff',border:'none'}} icon={<CheckOutlined />}>批量发布</Button>
+                            </div>
+                            <div className={styles.btnItemLeft}>
+                                <Button  style={{backgroundColor:'#ff8f00',color:'#ffffff',border:'none'}}  icon={<PauseOutlined />}>批量暂停</Button>
+                            </div>
+                            <div className={styles.btnItemLeft}>
+                                <Button danger type="primary" icon={<DeleteOutlined />}>删除所选</Button>
+                            </div>
+                        </div>
+                        :<div className={styles.formButtonLeft}></div>
+                    }
+                    
+                    <div className={styles.formButtonRight}>
+                        <div className={styles.btnItemRight}>
+                            <Button type="primary" icon={<SearchOutlined />}>搜索</Button>
+                        </div>
+                        <div className={styles.btnItemRight}>
+                            <Button  style={{backgroundColor:'#00acc1',color:'#ffffff',border:'none'}} icon={<RedoOutlined />}>重置</Button>
+                        </div>
+                    </div>
+                    
+                </div>
+            </Form>
+            <Table<TaskListItem> 
+                columns={columns} 
+                dataSource={taskList}
+                rowKey='id'
+                rowSelection={{
+                    type: selectionType,
+                    ...rowSelection,
+                }}
+                pagination={{
+                    total:total,
+                    pageSizeOptions: ["10", "20", "50"],
+                    showTotal: total => `共 ${total} 条`,
+                    showSizeChanger: true,
+                    // 改变页码时
+                    onChange: ((page, pageSize) => {
+                        console.log(page,pageSize)
+                        setPage(page)
+                        setLimit(pageSize)
+                    }),
+                    // pageSize 变化的回调
+                    onShowSizeChange: (page) => {
+                        setPage(1)
+                        setTaskList([])
+                    }
+                }}
             />
         </PageContainer>
     )
