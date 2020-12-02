@@ -1,5 +1,5 @@
 import { history, Reducer, Effect } from 'umi';
-import { queryTaskList } from './service'
+import { queryTaskList,runTasks,pauseTasks,deleteTasks } from './service'
 
 
 export interface StateType {
@@ -10,9 +10,13 @@ export interface TaskListModelType{
     state: StateType;
     effects: {
         getList: Effect;
+        run:Effect;
+        pause:Effect;
+        delete:Effect;
     };
     reducers: {
         changeTaskList: Reducer<StateType>;
+        
     };
 }
 const Model : TaskListModelType = {
@@ -36,7 +40,31 @@ const Model : TaskListModelType = {
                 }
             }   
             
-        }
+        },
+        *run({ payload,callback },{ call,put }) {
+            const response = yield call(runTasks,payload);
+            if(response.retCode===0){
+                if(callback){
+                    callback(response.data)
+                }
+            }
+        },
+        *pause({ payload,callback },{ call,put }) {
+            const response = yield call(pauseTasks,payload);
+            if(response.retCode===0){
+                if(callback){
+                    callback(response.data)
+                }
+            }
+        },
+        *delete({ payload,callback },{ call,put }) {
+            const response = yield call(deleteTasks,payload);
+            if(response.retCode===0){
+                if(callback){
+                    callback(response.data)
+                }
+            }
+        },
     },
     reducers:{
         changeTaskList(state,action) {

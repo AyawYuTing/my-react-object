@@ -1,7 +1,7 @@
 import React,{ useState,useRef, useEffect } from 'react'
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
 import { Dispatch, Link, connect } from 'umi';
-import { Table, Button,Form,Input,Select ,Row, Col,DatePicker  } from 'antd';
+import { Table, Button,Form,Input,Select,DatePicker,message,Modal,Popconfirm  } from 'antd';
 import { SearchOutlined,RedoOutlined,CheckOutlined,PauseOutlined,DeleteOutlined } from '@ant-design/icons';
 import { TaskListItem,TaskListPagination } from './data.d'
 import styles from './style.less';
@@ -19,11 +19,18 @@ const TaskList : React.FC<TaskProps> = (props) =>{
     const [total,setTotal] = useState(0)
     const [limit,setLimit] = useState(10)
     // const [pagination,setPagination] = useState<TaskListPagination>({ page:1,limit:10,total:0 })
-    const [selectionType,setSelectionType] = useState('checkbox');
+    const [selectionType] = useState('checkbox');
     const [selectedRowKeys,setSelectedRowKeys] = useState('')
+    const [searchForm,setSearchForm] = useState({
+        shopName:'',taskNumber:'',status:'RP',isTop:'',platformId:'0',taskTypeId:'0',taskResidue:'',userName:'',category:''
+    })
+    const [dateRange,setDateRange] = useState({beginDate:'',endDate:''})
+    const [showTimeModel, setShowTimeModel] = useState(false);
+    const [confirmLoading, setConfirmLoading] = useState(false);
+    const [runTaskTime,setRunTaskTime] = useState('')
     useEffect(() => {
         getList();
-    },[page,limit]);
+    },[page,limit,searchForm]);
     const getList = () => {
         // console.log(1)
         dispatch({
@@ -31,7 +38,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
             payload: {
                 page:page,
                 limit:limit,
-                status:'RP'
+                ...searchForm
             },
             callback:(data)=>{
                 setTaskList(data.list)
@@ -44,7 +51,35 @@ const TaskList : React.FC<TaskProps> = (props) =>{
             }
         })
     }
-    
+    // 批量发布
+    const runTasks = () =>{
+        dispatch({
+            type:'task/run',
+            payload:{
+                ids:selectedRowKeys,
+                time:''
+            },
+            callback:(res) =>{
+                message.success('任务运行成功！');
+                setConfirmLoading(false);
+                setShowTimeModel(false)
+            }
+        })
+    }
+    // 批量暂停
+    const pauseTasks = () =>{
+
+        dispatch({
+            type:'task/pause',
+            payload:{
+                ids:selectedRowKeys,
+            },
+            callback:(res) =>{
+                message.success('任务暂停成功！');
+                getList()
+            }
+        })
+    }
     const columns = [
         {
             title: '序号',
@@ -124,8 +159,15 @@ const TaskList : React.FC<TaskProps> = (props) =>{
         },
     ];
 
-    const onFinish = () => {
-
+    const onFinish = (value:any) => {
+        console.log('value--',value)
+        let form = Object.assign(value,dateRange)
+        setPage(1)
+        setSearchForm(form)
+        // setTimeout(() => {
+        //     getList()
+        // }, 500);
+        
     }
     const onFinishFailed = () => {
         
@@ -136,13 +178,49 @@ const TaskList : React.FC<TaskProps> = (props) =>{
     const onTopStatusChange = () => {
         
     }
+    const onPlatformChange = () => {
+
+    }
+    const onTasktypeChange = () => {
+
+    }
+    const openRunTime = () => {
+        setShowTimeModel(true)
+    }
+    const onTaskTimeChange = (date:any, dateString:any) =>{
+        console.log('dateString--',dateString)
+    }
+    const handleTimeModelComfirm = () =>{
+        // setShowTimeModel(false)
+        if(!runTaskTime){
+            message.error('请选择发布时间！')
+        }else{
+            setConfirmLoading(true);
+            runTasks();
+        }
+
+    }
+    const handleTimeModelCancel = () =>{
+        setShowTimeModel(false)
+    }
+    const resetForm = () => {
+        setSearchForm({
+            shopName:'',taskNumber:'',status:'RP',isTop:'',platformId:'0',taskTypeId:'0',taskResidue:'',userName:'',category:''
+        })
+        setDateRange({beginDate:'',endDate:''})
+    }
+    const announceTimeChange = (date: any, dateString: string) => {
+        console.log('date--',date,'dateString--',dateString)
+        let dateForm = {beginDate:dateString[0],endDate:dateString[1]}
+        setDateRange(dateForm)
+    }
     const rangeConfig = {
         rules: [{ type: 'array', required: false, message: 'Please select time!' }],
       };
     const rowSelection = {
         onChange: (selectedRowKeys:any, selectedRows:any) => {
             console.log(`selectedRowKeys: ${selectedRowKeys}`, 'selectedRows: ', selectedRows);
-            setSelectedRowKeys(selectedRowKeys)
+            setSelectedRowKeys(selectedRowKeys.join(','))
         }
     };
    
@@ -150,7 +228,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
         <PageContainer>
             <Form
                 name="basic"
-                initialValues={{ remember: true }}
+                initialValues={ searchForm }
                 onFinish={onFinish}
                 onFinishFailed={onFinishFailed}
             >
@@ -167,7 +245,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     <div className={styles.formItem}>
                         <Form.Item
                             label="任务单号"
-                            name="shopName"
+                            name="taskNumber"
                             rules={[{ required: false, message: '请输入任务单号' }]}
                         >
                             <Input placeholder='请输入任务单号'/>
@@ -176,7 +254,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     <div className={styles.formItem}>
                         <Form.Item
                             label="任务状态"
-                            name="shopName"
+                            name="status"
                             rules={[{ required: false, message: '请选择任务状态' }]}
                         >
                             <Select
@@ -184,18 +262,18 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                                 onChange={onTaskStatusChange}
                                 allowClear
                             >
-                                <Option value="male">运行&暂停</Option>
-                                <Option value="male">运行</Option>
-                                <Option value="female">暂停</Option>
-                                <Option value="other">草稿</Option>
-                                <Option value="other">终止</Option>
+                                <Option value="RP">运行&暂停</Option>
+                                <Option value="R">运行</Option>
+                                <Option value="P">暂停</Option>
+                                <Option value="C">草稿</Option>
+                                <Option value="N">终止</Option>
                             </Select>
                         </Form.Item>
                     </div>
                     <div className={styles.formItem}>
                         <Form.Item
                             label="置顶状态"
-                            name="shopName"
+                            name="isTop"
                             rules={[{ required: false, message: '请选择置顶状态' }]}
                         >
                             <Select
@@ -203,8 +281,9 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                                 onChange={onTopStatusChange}
                                 allowClear
                             >
-                                <Option value="male">已置顶</Option>
-                                <Option value="male">未置顶</Option>
+                                <Option value="">全部</Option>
+                                <Option value="true">已置顶</Option>
+                                <Option value="false">未置顶</Option>
                             </Select>
                         </Form.Item>
                     </div>
@@ -213,44 +292,44 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     <div className={styles.formItem}>
                         <Form.Item
                             label="平台类型"
-                            name="shopName"
+                            name="platformId"
                             rules={[{ required: false, message: '请选择平台类型' }]}
                         >
                             <Select
                                 placeholder="请选择平台类型"
-                                onChange={onTaskStatusChange}
+                                onChange={onPlatformChange}
                                 allowClear
                             >
-                                <Option value="male">全部</Option>
-                                <Option value="male">淘宝</Option>
-                                <Option value="female">京东</Option>
-                                <Option value="other">阿里巴巴</Option>
-                                <Option value="other">拼多多</Option>
+                                <Option value="0">全部</Option>
+                                <Option value="2">淘宝</Option>
+                                <Option value="1">京东</Option>
+                                <Option value="3">阿里巴巴</Option>
+                                <Option value="4">拼多多</Option>
                             </Select>
                         </Form.Item>
                     </div>
                     <div className={styles.formItem}>
                         <Form.Item
                             label="任务类型"
-                            name="shopName"
+                            name="taskTypeId"
                             rules={[{ required: false, message: '请选择任务类型' }]}
                         >
                             <Select
                                 placeholder="请选择任务类型"
-                                onChange={onTopStatusChange}
+                                onChange={onTasktypeChange}
                                 allowClear
                             >
-                                <Option value="male">全部</Option>
-                                <Option value="male">现付单</Option>
-                                <Option value="male">隔日单</Option>
-                                <Option value="male">浏览单</Option>
+                                <Option value="0">全部</Option>
+                                <Option value="1">现付单</Option>
+                                <Option value="2">隔日单</Option>
+                                <Option value="3">浏览单</Option>
                             </Select>
                         </Form.Item>
                     </div>
                     <div className={styles.formItem}>
                         <Form.Item
                             label="剩余数量"
-                            name="shopName"
+                            name="taskResidue"
                             rules={[{ required: false, message: '请输入剩余数' }]}
                         >
                             <Input placeholder='请输入剩余数'/>
@@ -259,7 +338,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     <div className={styles.formItem}>
                         <Form.Item
                             label="商家名称"
-                            name="shopName"
+                            name="userName"
                             rules={[{ required: false, message: '请输入商家名称' }]}
                         >
                             <Input placeholder='请输入商家名称'/>
@@ -270,14 +349,14 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                 <div  className={styles.form}>
                     
                     <div className={styles.formItem}>
-                        <Form.Item name="range-time-picker" label="发布时间" {...rangeConfig}>
-                            <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" />
+                        <Form.Item label="发布时间" {...rangeConfig}>
+                            <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" onChange={announceTimeChange}/>
                         </Form.Item>
                     </div>
                     <div className={styles.formItem}>
                         <Form.Item
                             label="商品类目"
-                            name="shopName"
+                            name="category"
                             rules={[{ required: false, message: '请输入商品类目' }]}
                         >
                             <Input placeholder='请输入商品类目'/>
@@ -298,13 +377,22 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             </div>
                         </div>
                     </div> */}
-                    {selectedRowKeys.length>0?
+                    {selectedRowKeys?
                         <div className={styles.formButtonLeft}>
                             <div className={styles.btnItemLeft}>
-                                <Button  style={{backgroundColor:'#00897b',color:'#ffffff',border:'none'}} icon={<CheckOutlined />}>批量发布</Button>
+                                <Button  style={{backgroundColor:'#00897b',color:'#ffffff',border:'none'}} icon={<CheckOutlined />}  onClick={openRunTime}>批量发布</Button>
                             </div>
                             <div className={styles.btnItemLeft}>
+                            <Popconfirm
+                                title="你确定要批量暂停所选任务吗？"
+                                onConfirm={pauseTasks}
+                                onCancel={()=>{}}
+                                okText="确定"
+                                cancelText="取消"
+                            >
                                 <Button  style={{backgroundColor:'#ff8f00',color:'#ffffff',border:'none'}}  icon={<PauseOutlined />}>批量暂停</Button>
+                            </Popconfirm>
+                                
                             </div>
                             <div className={styles.btnItemLeft}>
                                 <Button danger type="primary" icon={<DeleteOutlined />}>删除所选</Button>
@@ -315,10 +403,10 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     
                     <div className={styles.formButtonRight}>
                         <div className={styles.btnItemRight}>
-                            <Button type="primary" icon={<SearchOutlined />}>搜索</Button>
+                            <Button type="primary" icon={<SearchOutlined />} htmlType="submit">搜索</Button>
                         </div>
                         <div className={styles.btnItemRight}>
-                            <Button  style={{backgroundColor:'#00acc1',color:'#ffffff',border:'none'}} icon={<RedoOutlined />}>重置</Button>
+                            <Button  style={{backgroundColor:'#00acc1',color:'#ffffff',border:'none'}} icon={<RedoOutlined />} onClick={resetForm}>重置</Button>
                         </div>
                     </div>
                     
@@ -334,6 +422,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                 }}
                 pagination={{
                     total:total,
+                    current:page,
                     pageSizeOptions: ["10", "20", "50"],
                     showTotal: total => `共 ${total} 条`,
                     showSizeChanger: true,
@@ -350,6 +439,20 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     }
                 }}
             />
+
+            <Modal
+                title="任务批量发布"
+                visible={ showTimeModel }
+                onOk={handleTimeModelComfirm}
+                confirmLoading={confirmLoading}
+                onCancel={handleTimeModelCancel}
+            >
+                <div className={styles.modal}>
+                    <div className={styles.modal_name}>发布时间：</div>
+                    <DatePicker onChange={onTaskTimeChange} showTime />
+                </div>
+            </Modal>
+            
         </PageContainer>
     )
 }

@@ -4,6 +4,7 @@
  */
 import { extend } from 'umi-request';
 import { notification } from 'antd';
+import { stringify } from 'qs';
 
 const codeMessage = {
   200: '服务器成功返回请求的数据。',
@@ -52,5 +53,30 @@ const request = extend({
   errorHandler, // 默认错误处理
   credentials: 'include', // 默认请求是否带上cookie
 });
+try{
+  request.interceptors.request.use((url, options) =>{
+    console.log('options',options)
+    // let newOptions = options
+    // if (!(newOptions.body instanceof FormData)) {
+    //   newOptions.headers = {
+    //     Accept: 'application/json',
+    //     'Content-Type': 'application/x-www-form-urlencoded',
+    //     ...newOptions.headers,
+    //   };
+    //   newOptions.body = JSON.stringify(newOptions.body);
+    // }
+    return {
+      url,
+      options: {
+        ...options,
+        headers: { 
+          Authorization: `token `,
+          'Content-Type':'application/x-www-form-urlencoded'
+        },
+      },
+    };
+  })
+}catch{
 
+}
 export default request;

@@ -49,14 +49,33 @@ const Model: ModelType = {
   },
 
   effects: {
-    *login({ payload }, { call, put }) {
+    *login({ payload,callback }, { call, put }) {
       const response = yield call(fakeAccountLogin, payload);
       yield put({
         type: 'changeLoginStatus',
         payload: response,
       });
       // Login successfully
-      if (response.status === 'ok') {
+      // if (response.status === 'ok') {
+      //   message.success('登录成功！');
+      //   const urlParams = new URL(window.location.href);
+      //   const params = getPageQuery();
+      //   let { redirect } = params as { redirect: string };
+      //   if (redirect) {
+      //     const redirectUrlParams = new URL(redirect);
+      //     if (redirectUrlParams.origin === urlParams.origin) {
+      //       redirect = redirect.substr(urlParams.origin.length);
+      //       if (redirect.match(/^\/.*#/)) {
+      //         redirect = redirect.substr(redirect.indexOf('#') + 1);
+      //       }
+      //     } else {
+      //       window.location.href = redirect;
+      //       return;
+      //     }
+      //   }
+      //   history.replace(redirect || '/');
+      // }
+      if(response.retCode===0){
         message.success('登录成功！');
         const urlParams = new URL(window.location.href);
         const params = getPageQuery();
@@ -74,7 +93,10 @@ const Model: ModelType = {
           }
         }
         history.replace(redirect || '/');
-      }
+        if(callback){
+            callback(response.data)
+        }
+    }
     },
 
     *getCaptcha({ payload }, { call }) {
