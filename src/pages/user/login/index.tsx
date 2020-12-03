@@ -39,7 +39,7 @@ const Login: React.FC<LoginProps> = (props) => {
       type: 'userAndlogin/login',
       payload: {
         ...values,
-        type,
+        // type,
       },
     });
   };
@@ -51,8 +51,8 @@ const Login: React.FC<LoginProps> = (props) => {
             <LoginMessage content="账户或密码错误（admin/ant.design）" />
           )}
 
-          <UserName
-            name="userName"
+          {/* <UserName
+            name="mobile"
             placeholder="用户名: admin or user"
             rules={[
               {
@@ -62,8 +62,28 @@ const Login: React.FC<LoginProps> = (props) => {
             ]}
           />
           <Password
-            name="password"
+            name="pwd"
             placeholder="密码: ant.design"
+            rules={[
+              {
+                required: true,
+                message: '请输入密码！',
+              },
+            ]}
+          /> */}
+          <UserName
+            name="mobile"
+            placeholder="用户名:sbdj"
+            rules={[
+              {
+                required: true,
+                message: '请输入用户名!',
+              },
+            ]}
+          />
+          <Password
+            name="pwd"
+            placeholder="密码: 123456"
             rules={[
               {
                 required: true,

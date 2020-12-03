@@ -38,10 +38,10 @@ const errorHandler = (error: { response: Response }): Response => {
       description: errorText,
     });
   } else if (!response) {
-    notification.error({
-      description: '您的网络发生异常，无法连接服务器',
-      message: '网络异常',
-    });
+    // notification.error({
+    //   description: '您的网络发生异常，无法连接服务器',
+    //   message: '网络异常',
+    // });
   }
   return response;
 };
@@ -55,16 +55,8 @@ const request = extend({
 });
 try{
   request.interceptors.request.use((url, options) =>{
-    console.log('options',options)
-    // let newOptions = options
-    // if (!(newOptions.body instanceof FormData)) {
-    //   newOptions.headers = {
-    //     Accept: 'application/json',
-    //     'Content-Type': 'application/x-www-form-urlencoded',
-    //     ...newOptions.headers,
-    //   };
-    //   newOptions.body = JSON.stringify(newOptions.body);
-    // }
+    // console.log('options',options)
+    options.body = stringify(options.body);
     return {
       url,
       options: {
