@@ -1,8 +1,8 @@
 import React,{ useState,useRef, useEffect } from 'react'
 import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
 import { Dispatch, Link, connect } from 'umi';
-import { Table, Button,Form,Input,Select,DatePicker,message,Modal,Popconfirm,Tag,Drawer,Row,Col,Radio  } from 'antd';
-import { SearchOutlined,RedoOutlined,CheckOutlined,PauseOutlined,DeleteOutlined,ToTopOutlined,EditOutlined,StopOutlined,ExclamationCircleOutlined } from '@ant-design/icons';
+import { Table, Button,Form,Input,Select,DatePicker,message,Modal,Popconfirm,Tag,Drawer,Row,Col,Radio,Image   } from 'antd';
+import { SearchOutlined,RedoOutlined,CheckOutlined,PauseOutlined,DeleteOutlined,ToTopOutlined,EditOutlined,StopOutlined,ExclamationCircleOutlined,PlusCircleOutlined,CloseCircleOutlined } from '@ant-design/icons';
 import { TaskListItem,TaskListPagination } from './data.d'
 import styles from './style.less';
 import { BackgroundColor } from 'chalk';
@@ -853,14 +853,65 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                         </Col>
                     </Row>
                     <Row gutter={16}>
-                    <Col span={24}>
-                        <Form.Item
-                        name="sellerAsk"
-                        label="商家要求"
-                        >
-                        <Input.TextArea rows={4} placeholder="请输入商家要求" />
-                        </Form.Item>
-                    </Col>
+                        <Col span={12}>
+                            <Form.Item
+                            name="link"
+                            label="商品主图"
+                            >
+                            <Image
+                                width={150}
+                                src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
+                            />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={24}>
+                            <Form.Item
+                            name="keywords"
+                            label="搜索词"
+                            >
+                                <div className={styles.keywordsForm}>
+                                    <div className={styles.keywordsForm_item}>
+                                        <div className={styles.keywordsForm_item_keyword}>
+                                            <Input
+                                                style={{ width: '100%' }}
+                                                placeholder="请输入搜索词"
+                                            />
+                                        </div>
+                                        <div className={styles.keywordsForm_item_number}>
+                                            <Input
+                                                style={{ width: '100%' }}
+                                                placeholder="请输入数量"
+                                            />
+                                        </div>
+                                        <div className={styles.keywordsForm_item_btn}>
+                                            <PlusCircleOutlined />
+                                        </div>
+                                    </div>
+                                </div>
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={24}>
+                            <Form.Item
+                            name="goodsKeywords"
+                            label="查文内容"
+                            >
+                            <Input.TextArea rows={2} placeholder="请输入查文内容" />
+                            </Form.Item>
+                        </Col>
+                    </Row>
+                    <Row gutter={16}>
+                        <Col span={24}>
+                            <Form.Item
+                            name="sellerAsk"
+                            label="商家要求"
+                            >
+                            <Input.TextArea rows={4} placeholder="请输入商家要求" />
+                            </Form.Item>
+                        </Col>
                     </Row>
                 </Form>
             </Drawer>

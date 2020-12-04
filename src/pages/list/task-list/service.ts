@@ -57,3 +57,18 @@ export async function stopTask(params:any) {
         body:params
     })
 }
+// 获取任务类型
+export async function getTasktype(params:any) {
+    return request('/api/base/code',{
+        method : 'GET',
+        params:params
+    })
+}
+
+// 获取搜索词列表
+export async function findKeywords(params:any) {
+    return request('/task/findkeyword',{
+        method:'POST',
+        body:params
+    })
+}
