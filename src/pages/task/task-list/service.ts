@@ -67,7 +67,7 @@ export async function getTasktype(params:any) {
 
 // 获取搜索词列表
 export async function findKeywords(params:any) {
-    return request('/task/findkeyword',{
+    return request('/api/task/findkeyword',{
         method:'POST',
         body:params
     })

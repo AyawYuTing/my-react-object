@@ -102,6 +102,20 @@ export default defineConfig({
               ],
             },
             {
+              path: '/task',
+              name: 'task',
+              icon: 'dashboard',
+              routes:[
+                {
+                  name: 'task-list',
+                  icon: 'smile',
+                  path: '/task/task-list',
+                  component: './task/task-list',
+                },
+              ]
+            },
+
+            {
               path: '/form',
               icon: 'form',
               name: 'form',
@@ -186,12 +200,7 @@ export default defineConfig({
                   path: '/list/card-list',
                   component: './list/card-list',
                 },
-                {
-                  name: 'task-list',
-                  icon: 'smile',
-                  path: '/list/task-list',
-                  component: './list/task-list',
-                },
+                
               ],
             },
             {

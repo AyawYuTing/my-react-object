@@ -1,12 +1,10 @@
 import React,{ useState,useRef, useEffect } from 'react'
-import { PageContainer, FooterToolbar } from '@ant-design/pro-layout';
-import { Dispatch, Link, connect } from 'umi';
+import { PageContainer } from '@ant-design/pro-layout';
+import { Dispatch, connect } from 'umi';
 import { Table, Button,Form,Input,Select,DatePicker,message,Modal,Popconfirm,Tag,Drawer,Row,Col,Radio,Image   } from 'antd';
 import { SearchOutlined,RedoOutlined,CheckOutlined,PauseOutlined,DeleteOutlined,ToTopOutlined,EditOutlined,StopOutlined,ExclamationCircleOutlined,PlusCircleOutlined,CloseCircleOutlined } from '@ant-design/icons';
-import { TaskListItem,TaskListPagination } from './data.d'
+import { TaskListItem } from './data.d'
 import styles from './style.less';
-import { BackgroundColor } from 'chalk';
-import { any } from 'prop-types';
 const { Option } = Select;
 const { RangePicker } = DatePicker;
 const { confirm } = Modal;
@@ -35,6 +33,13 @@ const TaskList : React.FC<TaskProps> = (props) =>{
     const [runSelectedRowKey,setRunSelectedRowKey] = useState('')
     const [detailVisible,setDetailVisible] = useState(false)
     const [drawerTitle,setDrawerTitle] = useState('')
+    const [detailForm,setDetailForm] = useState({
+        brokerage:'',goodsKeywords:'',keywords:'',link:'',platformName:'0',prefPrice:'0',realPrice:'',receiptFlag:'',
+        sellerAsk:'',serverPrice:'',showPrice:'',taskNumber:'',taskTotal:'',taskTypeName:'',time:'',title:'',packages:''
+    })
+    const [keywordsList,setKeywordsList] = useState([{keyword:'123',number:'12'}])
+    const detailRef = useRef(null)
+
     useEffect(() => {
         getList();
     },[page,limit,searchForm]);
@@ -82,7 +87,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                 limit:limit,
                 ...searchForm
             },
-            callback:(data)=>{
+            callback:(data:any)=>{
                 setTaskList(data.list)
                 setLoading(false)
                 if(total===0){
@@ -122,6 +127,17 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                 message.success('任务暂停成功！');
                 getList()
                 setSelectedRowKeys([])
+            }
+        })
+    }
+    const findKeywords = (id:any) =>{
+        dispatch({
+            type:'task/getKeywords',
+            payload:{
+                taskId:id
+            },
+            callback:(res:any) =>{
+                setKeywordsList(res)
             }
         })
     }
@@ -283,10 +299,17 @@ const TaskList : React.FC<TaskProps> = (props) =>{
         }else{
             setDrawerTitle('任务详情')
         }
+        findKeywords(value.id)
         setDetailVisible(true)
     }
-    const onDrawerClose = () =>{
+    const onDrawerClose = async () =>{
         setDetailVisible(false)
+        const formValue = await detailRef.current!.validateFields();
+        console.log('formValue--',formValue)
+    }
+    const onDetailFormChange = (value:any) =>{
+        console.log('onDetailFormChange--',value)
+        console.log('detailRef--',detailRef)
     }
     // 暂停一个任务
     const pauseOne = (value:any) =>{
@@ -414,7 +437,31 @@ const TaskList : React.FC<TaskProps> = (props) =>{
             console.log('selectedRowKeys--',keys)
         }
     };
-   
+    
+    const keywordListDom = keywordsList.map((item:any) => {
+        <div className={styles.keywordsForm}>
+            <div className={styles.keywordsForm_item}>
+                <div className={styles.keywordsForm_item_keyword}>
+                    <Input
+                        style={{ width: '100%' }}
+                        placeholder="请输入搜索词"
+                        value={item.keyword}
+                    />
+                </div>
+                <div className={styles.keywordsForm_item_number}>
+                    <Input
+                        style={{ width: '100%' }}
+                        placeholder="请输入数量"
+                        value={item.number}
+                    />
+                </div>
+                <div className={styles.keywordsForm_item_btn}>
+                    <PlusCircleOutlined  className={styles.keywordsForm_item_btn_icon} />
+                </div>
+            </div>
+        </div>
+    })
+
     return(
         <PageContainer>
             <Form
@@ -658,12 +705,18 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     Cancel
                 </Button>
                 <Button onClick={onDrawerClose} type="primary">
-                    Submit
+                    确定
                 </Button>
                 </div>
             }
             >
-                <Form layout="vertical" hideRequiredMark>
+                <Form 
+                    layout="vertical" 
+                    hideRequiredMark
+                    onFinish={onDetailFormChange}
+                    ref={ detailRef }
+                    initialValues={ detailForm }
+                >
                     <Row gutter={16}>
                     <Col span={12}>
                         <Form.Item
@@ -798,6 +851,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             <Input
                                 style={{ width: '100%' }}
                                 placeholder="请输入任务佣金"
+                                addonBefore="￥"
                             />
                             </Form.Item>
                         </Col>
@@ -825,6 +879,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             <Input
                                 style={{ width: '100%' }}
                                 placeholder="请输入服务费"
+                                addonBefore="￥"
                             />
                             </Form.Item>
                         </Col>
@@ -867,30 +922,33 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     </Row>
                     <Row gutter={16}>
                         <Col span={24}>
-                            <Form.Item
+                            {/* <Form.Item
                             name="keywords"
                             label="搜索词"
                             >
-                                <div className={styles.keywordsForm}>
-                                    <div className={styles.keywordsForm_item}>
-                                        <div className={styles.keywordsForm_item_keyword}>
-                                            <Input
-                                                style={{ width: '100%' }}
-                                                placeholder="请输入搜索词"
-                                            />
-                                        </div>
-                                        <div className={styles.keywordsForm_item_number}>
-                                            <Input
-                                                style={{ width: '100%' }}
-                                                placeholder="请输入数量"
-                                            />
-                                        </div>
-                                        <div className={styles.keywordsForm_item_btn}>
-                                            <PlusCircleOutlined />
-                                        </div>
+                                
+                            </Form.Item> */}
+                            <div className={styles.keywordsForm_name}></div>
+                            {keywordListDom}
+                            <div className={styles.keywordsForm}>
+                                <div className={styles.keywordsForm_item}>
+                                    <div className={styles.keywordsForm_item_keyword}>
+                                        <Input
+                                            style={{ width: '100%' }}
+                                            placeholder="请输入搜索词"
+                                        />
+                                    </div>
+                                    <div className={styles.keywordsForm_item_number}>
+                                        <Input
+                                            style={{ width: '100%' }}
+                                            placeholder="请输入数量"
+                                        />
+                                    </div>
+                                    <div className={styles.keywordsForm_item_btn}>
+                                        <PlusCircleOutlined  className={styles.keywordsForm_item_btn_icon} />
                                     </div>
                                 </div>
-                            </Form.Item>
+                            </div>
                         </Col>
                     </Row>
                     <Row gutter={16}>
