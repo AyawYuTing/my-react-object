@@ -20,7 +20,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
     const [limit,setLimit] = useState(10)
     const [loading,setLoading] = useState(false)
     // const [pagination,setPagination] = useState<TaskListPagination>({ page:1,limit:10,total:0 })
-    const [selectionType] = useState('checkbox');
+    const [selectionType] = useState<any>('checkbox');
     const [selectedRowKeys,setSelectedRowKeys] = useState([])
     const [searchForm,setSearchForm] = useState({
         shopName:'',taskNumber:'',status:'RP',isTop:'',platformId:'0',taskTypeId:'0',taskResidue:'',userName:'',category:''
@@ -34,11 +34,12 @@ const TaskList : React.FC<TaskProps> = (props) =>{
     const [detailVisible,setDetailVisible] = useState(false)
     const [drawerTitle,setDrawerTitle] = useState('')
     const [detailForm,setDetailForm] = useState({
-        brokerage:'',goodsKeywords:'',keywords:'',link:'',platformName:'0',prefPrice:'0',realPrice:'',receiptFlag:'',
-        sellerAsk:'',serverPrice:'',showPrice:'',taskNumber:'',taskTotal:'',taskTypeName:'',time:'',title:'',packages:''
+        id:'',isCard:'',taskTypeId:'',showPrice:'',taskNumber:'',prefPrice:'0',platformId:'',platformName:'0',realPrice:'',title:'',packages:'',link:'',
+        formula:'',brokerage:'',keywords:'',number:0,taskTotal:'',serverPrice:'',time:'',receiptFlag:'',goodsKeywords:'',sellerAsk:'',taskKeyword:'',status:'',imgLink:''
     })
-    const [keywordsList,setKeywordsList] = useState([{keyword:'123',number:'12'}])
-    const detailRef = useRef(null)
+    const [editAble,setEditAble] = useState(false)
+    const [keywordsList,setKeywordsList] = useState<any>([])
+    const detailRef = useRef<any>()
 
     useEffect(() => {
         getList();
@@ -141,7 +142,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
             }
         })
     }
-    const columns = [
+    const columns:any = [
         {
             title: '序号',
             align:'center',
@@ -296,10 +297,13 @@ const TaskList : React.FC<TaskProps> = (props) =>{
         setSelectedRowKeys(ids)
         if(flag){
             setDrawerTitle('编辑任务')
+            setEditAble(false)
         }else{
             setDrawerTitle('任务详情')
+            setEditAble(true)
         }
         findKeywords(value.id)
+        setDetailForm(value)
         setDetailVisible(true)
     }
     const onDrawerClose = async () =>{
@@ -421,14 +425,11 @@ const TaskList : React.FC<TaskProps> = (props) =>{
         setDateRange({beginDate:'',endDate:''})
     }
     // 发布时间筛选
-    const announceTimeChange = (date: any, dateString: string) => {
+    const announceTimeChange:any = (date: any, dateString: string) => {
         console.log('date--',date,'dateString--',dateString)
         let dateForm = {beginDate:dateString[0],endDate:dateString[1]}
         setDateRange(dateForm)
     }
-    const rangeConfig = {
-        rules: [{ type: 'array', required: false, message: 'Please select time!' }],
-      };
     const rowSelection = {
         selectedRowKeys,
         onChange: (keys:any, selectedRows:any) => {
@@ -437,9 +438,8 @@ const TaskList : React.FC<TaskProps> = (props) =>{
             console.log('selectedRowKeys--',keys)
         }
     };
-    
-    const keywordListDom = keywordsList.map((item:any) => {
-        <div className={styles.keywordsForm}>
+    const keywordList = keywordsList.map((item:any,index:any) => 
+        <div className={styles.keywordsForm} key={item.id}>
             <div className={styles.keywordsForm_item}>
                 <div className={styles.keywordsForm_item_keyword}>
                     <Input
@@ -455,13 +455,15 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                         value={item.number}
                     />
                 </div>
-                <div className={styles.keywordsForm_item_btn}>
-                    <PlusCircleOutlined  className={styles.keywordsForm_item_btn_icon} />
+                <div className={styles.keywordsForm_item_btn} onClick={() => deleteKeywordItem(index)}>
+                    <CloseCircleOutlined  className={styles.keywordsForm_item_btn_icon} />
                 </div>
             </div>
         </div>
-    })
-
+    )
+    const deleteKeywordItem = (index:any) => {
+        setKeywordsList(keywordsList.filter((val:any,idx:any)=>idx!==index))
+    }
     return(
         <PageContainer>
             <Form
@@ -581,10 +583,10 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     </div>
                     
                 </div>
-                <div  className={styles.form}>
+                <div className={styles.form}>
                     
                     <div className={styles.formItem}>
-                        <Form.Item label="发布时间" {...rangeConfig}>
+                        <Form.Item label="发布时间">
                             <RangePicker showTime format="YYYY-MM-DD HH:mm:ss" onChange={announceTimeChange}/>
                         </Form.Item>
                     </div>
@@ -664,7 +666,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     showTotal: total => `共 ${total} 条`,
                     showSizeChanger: true,
                     // 改变页码时
-                    onChange: ((page, pageSize) => {
+                    onChange: ((page:any, pageSize:any) => {
                         console.log(page,pageSize)
                         setPage(page)
                         setLimit(pageSize)
@@ -695,7 +697,9 @@ const TaskList : React.FC<TaskProps> = (props) =>{
             onClose={onDrawerClose}
             visible={detailVisible}
             bodyStyle={{ paddingBottom: 80 }}
+            
             footer={
+                !editAble?
                 <div
                 style={{
                     textAlign: 'right',
@@ -707,7 +711,10 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                 <Button onClick={onDrawerClose} type="primary">
                     确定
                 </Button>
-                </div>
+                </div>:
+                <></>
+                
+                
             }
             >
                 <Form 
@@ -724,7 +731,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                         label="任务类型"
                         // rules={[{ required: true, message: '请输入任务类型' }]}
                         >
-                        <Select placeholder="请输入任务类型">
+                        <Select placeholder="请输入任务类型" disabled={editAble}>
                             <Option value="0">全部</Option>
                             <Option value="1">现付单</Option>
                             <Option value="2">隔日单</Option>
@@ -742,6 +749,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             style={{ width: '100%' }}
                             addonBefore="￥"
                             placeholder="请输入搜索价格"
+                            disabled={editAble}
                         />
                         </Form.Item>
                     </Col>
@@ -756,6 +764,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             <Input
                             style={{ width: '100%' }}
                             placeholder="请输入任务单号"
+                            disabled={editAble}
                             />
                         </Form.Item>
                     </Col>
@@ -768,6 +777,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             style={{ width: '100%' }}
                             addonBefore="￥"
                             placeholder="请输入优惠价格"
+                            disabled={editAble}
                         />
                         </Form.Item>
                     </Col>
@@ -824,6 +834,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             <Input
                                 style={{ width: '100%' }}
                                 placeholder="请输入购买套餐"
+                                disabled={editAble}
                             />
                             </Form.Item>
                         </Col>
@@ -852,6 +863,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                                 style={{ width: '100%' }}
                                 placeholder="请输入任务佣金"
                                 addonBefore="￥"
+                                disabled={editAble}
                             />
                             </Form.Item>
                         </Col>
@@ -880,6 +892,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                                 style={{ width: '100%' }}
                                 placeholder="请输入服务费"
                                 addonBefore="￥"
+                                disabled={editAble}
                             />
                             </Form.Item>
                         </Col>
@@ -891,7 +904,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             label="发布时间"
                             // rules={[{ required: true, message: 'Please choose the dateTime' }]}
                             >
-                            <DatePicker style={{ width: '100%' }} onChange={onTaskTimeChange} showTime />
+                            <DatePicker disabled={editAble} style={{ width: '100%' }} onChange={onTaskTimeChange} showTime />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
@@ -900,7 +913,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             label="收货状态"
                             // rules={[{ required: true, message: 'Please choose the dateTime' }]}
                             >
-                            <Radio.Group>
+                            <Radio.Group  disabled={editAble}>
                                 <Radio value={0}>确认收货</Radio>
                                 <Radio value={1}>无需收货</Radio>
                             </Radio.Group>
@@ -915,7 +928,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             >
                             <Image
                                 width={150}
-                                src="https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png"
+                                src={detailForm.imgLink}
                             />
                             </Form.Item>
                         </Col>
@@ -928,8 +941,9 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             >
                                 
                             </Form.Item> */}
-                            <div className={styles.keywordsForm_name}></div>
-                            {keywordListDom}
+                            <div className={styles.keywordsForm_name}>搜索词</div>
+                            { keywordList }
+                            {/* <keywordList />*/}
                             <div className={styles.keywordsForm}>
                                 <div className={styles.keywordsForm_item}>
                                     <div className={styles.keywordsForm_item_keyword}>
@@ -957,7 +971,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             name="goodsKeywords"
                             label="查文内容"
                             >
-                            <Input.TextArea rows={2} placeholder="请输入查文内容" />
+                            <Input.TextArea rows={2} placeholder="请输入查文内容" disabled={editAble} />
                             </Form.Item>
                         </Col>
                     </Row>
@@ -967,7 +981,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             name="sellerAsk"
                             label="商家要求"
                             >
-                            <Input.TextArea rows={4} placeholder="请输入商家要求" />
+                            <Input.TextArea rows={4} placeholder="请输入商家要求" disabled={editAble} />
                             </Form.Item>
                         </Col>
                     </Row>

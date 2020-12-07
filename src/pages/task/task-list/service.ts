@@ -72,3 +72,10 @@ export async function findKeywords(params:any) {
         body:params
     })
 }
+
+export async function editForm(params:any) {
+    return request('/api/task/update',{
+        method:'POST',
+        body:params
+    })
+}
