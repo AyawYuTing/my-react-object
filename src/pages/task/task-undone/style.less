@@ -1,0 +1,32 @@
+.form{
+    display: flex;
+    justify-content: space-between;
+    // background-color: #ffffff;
+    // padding: 30rpx;
+    &::after{
+        content:'';
+        flex:auto
+    }
+}
+.formItem{
+    // padding: 0 20px;
+    width: 25%;
+}
+.formItem:not(:nth-child(4n)){
+    padding-right: 30px;
+}
+.formButtonLeft{
+    display: flex;
+    width: 50%;
+}
+.formButtonRight{
+    display: flex;
+    justify-content: flex-end;
+    width: 50%;
+}
+.btnItemLeft{
+    margin: 0 20px 20px 0px;
+}
+.btnItemRight{
+    margin: 0 0 20px 20px;
+}

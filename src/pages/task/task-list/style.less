@@ -90,14 +90,30 @@
         &_keyword{
             margin-right: 10px;
             width: 400px;
+            :global{
+                .ant-form-item{
+                    margin-bottom: 0;
+                }
+            }
         }
         &_number{
             margin-right: 10px;
             width: 200px;
+            :global{
+                .ant-form-item{
+                    margin-bottom: 0;
+                }
+            }
         }
         &_btn{
             &_icon{
                 font-size: 30px;
+            }
+            .del{
+                color: #df4d4d;
+            }
+            .add{
+                color: #3949ab;
             }
         }
     }

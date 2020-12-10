@@ -37,9 +37,12 @@ const TaskList : React.FC<TaskProps> = (props) =>{
         id:'',isCard:'',taskTypeId:'',showPrice:'',taskNumber:'',prefPrice:'0',platformId:'',platformName:'0',realPrice:'',title:'',packages:'',link:'',
         formula:'',brokerage:'',keywords:'',number:0,taskTotal:'',serverPrice:'',time:'',receiptFlag:'',goodsKeywords:'',sellerAsk:'',taskKeyword:'',status:'',imgLink:''
     })
-    const [editAble,setEditAble] = useState(false)
+    const [editDisable,setEditDisable] = useState(false)
     const [keywordsList,setKeywordsList] = useState<any>([])
+    
     const detailRef = useRef<any>()
+    const keywordRef = useRef<any>()
+    const [keywordForm] = Form.useForm();
 
     useEffect(() => {
         getList();
@@ -52,7 +55,6 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                 icon: <ExclamationCircleOutlined />,
                 content: '',
                 onOk() {
-                //   console.log('OK');
                     pauseTasks()
                 },
                 onCancel() {
@@ -95,7 +97,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                     setTotal(data.total)
                 }
                 
-                // setPagination(listData)
+                // setPagination(listData)    
             }
         })
     }
@@ -138,7 +140,11 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                 taskId:id
             },
             callback:(res:any) =>{
-                setKeywordsList(res)
+                let list:any = []
+                res.forEach((val:any) => {
+                    list.push({keyword:val.keyword,number:val.number,isCard:0})
+                });
+                setKeywordsList(list)
             }
         })
     }
@@ -297,10 +303,10 @@ const TaskList : React.FC<TaskProps> = (props) =>{
         setSelectedRowKeys(ids)
         if(flag){
             setDrawerTitle('编辑任务')
-            setEditAble(false)
+            setEditDisable(false)
         }else{
             setDrawerTitle('任务详情')
-            setEditAble(true)
+            setEditDisable(true)
         }
         findKeywords(value.id)
         setDetailForm(value)
@@ -308,8 +314,28 @@ const TaskList : React.FC<TaskProps> = (props) =>{
     }
     const onDrawerClose = async () =>{
         setDetailVisible(false)
+    }
+    const onDrawerComfirm = async () => {
         const formValue = await detailRef.current!.validateFields();
-        console.log('formValue--',formValue)
+        let form = {
+            id:detailForm.id,isCard:0,taskTypeId:detailForm.taskTypeId,
+            platformId:detailForm.platformId,formula:'',keyword:keywordsList[0].keyword,number:keywordList[0].number,
+            taskKeyword:JSON.stringify(keywordsList),status:detailForm.status
+        }
+        form = Object.assign(formValue,form)
+        dispatch({
+            type:'task/edit',
+            payload:{
+                ...form
+            },
+            callback:() => {
+                message.success('修改成功！')
+                setDetailVisible(false)
+                getList()
+            }
+        })
+        // console.log('detailForm--',detailForm)
+        // console.log('formValue--',formValue)
     }
     const onDetailFormChange = (value:any) =>{
         console.log('onDetailFormChange--',value)
@@ -446,6 +472,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                         style={{ width: '100%' }}
                         placeholder="请输入搜索词"
                         value={item.keyword}
+                        disabled={editDisable}
                     />
                 </div>
                 <div className={styles.keywordsForm_item_number}>
@@ -453,16 +480,37 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                         style={{ width: '100%' }}
                         placeholder="请输入数量"
                         value={item.number}
+                        disabled={editDisable}
                     />
                 </div>
-                <div className={styles.keywordsForm_item_btn} onClick={() => deleteKeywordItem(index)}>
-                    <CloseCircleOutlined  className={styles.keywordsForm_item_btn_icon} />
-                </div>
+                {   
+                    !editDisable?
+                    <div className={styles.keywordsForm_item_btn} onClick={() => deleteKeywordItem(index)}>
+                        <CloseCircleOutlined  className={`${styles.keywordsForm_item_btn_icon} ${styles.del}`} />
+                    </div>
+                    :<></>
+                }
+                
             </div>
         </div>
     )
     const deleteKeywordItem = (index:any) => {
         setKeywordsList(keywordsList.filter((val:any,idx:any)=>idx!==index))
+    }
+    const addKeywordItem = async () =>{
+        // if(!keywordVal){
+        //     message.warn('请输入关键词！')
+        //     return false
+        // }else if(!keywordNum){
+        //     message.warn('请输入数量！')
+        //     return false
+        // }
+        const formValue = await keywordRef.current!.validateFields();
+        let list = JSON.parse(JSON.stringify(keywordsList))
+        list.push({keyword:formValue.keyword,number:formValue.number,isCard:0})
+        console.log('list--',list)
+        keywordForm.resetFields()
+        setKeywordsList(list)
     }
     return(
         <PageContainer>
@@ -637,15 +685,19 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                         </div>
                         :<div className={styles.formButtonLeft}></div>
                     }
+                    {
+                        !editDisable?
+                        <div className={styles.formButtonRight}>
+                            <div className={styles.btnItemRight}>
+                                <Button type="primary" icon={<SearchOutlined />} htmlType="submit">搜索</Button>
+                            </div>
+                            <div className={styles.btnItemRight}>
+                                <Button  style={{backgroundColor:'#00acc1',color:'#ffffff',border:'none'}} icon={<RedoOutlined />} onClick={resetForm}>重置</Button>
+                            </div>
+                        </div>
+                        :<></>
+                    }
                     
-                    <div className={styles.formButtonRight}>
-                        <div className={styles.btnItemRight}>
-                            <Button type="primary" icon={<SearchOutlined />} htmlType="submit">搜索</Button>
-                        </div>
-                        <div className={styles.btnItemRight}>
-                            <Button  style={{backgroundColor:'#00acc1',color:'#ffffff',border:'none'}} icon={<RedoOutlined />} onClick={resetForm}>重置</Button>
-                        </div>
-                    </div>
                     
                 </div>
             </Form>
@@ -699,7 +751,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
             bodyStyle={{ paddingBottom: 80 }}
             
             footer={
-                !editAble?
+                !editDisable?
                 <div
                 style={{
                     textAlign: 'right',
@@ -708,7 +760,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                 <Button onClick={onDrawerClose} style={{ marginRight: 8 }}>
                     Cancel
                 </Button>
-                <Button onClick={onDrawerClose} type="primary">
+                <Button onClick={onDrawerComfirm} type="primary">
                     确定
                 </Button>
                 </div>:
@@ -731,7 +783,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                         label="任务类型"
                         // rules={[{ required: true, message: '请输入任务类型' }]}
                         >
-                        <Select placeholder="请输入任务类型" disabled={editAble}>
+                        <Select placeholder="请输入任务类型" disabled={editDisable}>
                             <Option value="0">全部</Option>
                             <Option value="1">现付单</Option>
                             <Option value="2">隔日单</Option>
@@ -749,7 +801,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             style={{ width: '100%' }}
                             addonBefore="￥"
                             placeholder="请输入搜索价格"
-                            disabled={editAble}
+                            disabled={editDisable}
                         />
                         </Form.Item>
                     </Col>
@@ -764,7 +816,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             <Input
                             style={{ width: '100%' }}
                             placeholder="请输入任务单号"
-                            disabled={editAble}
+                            disabled={editDisable}
                             />
                         </Form.Item>
                     </Col>
@@ -777,7 +829,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             style={{ width: '100%' }}
                             addonBefore="￥"
                             placeholder="请输入优惠价格"
-                            disabled={editAble}
+                            disabled={editDisable}
                         />
                         </Form.Item>
                     </Col>
@@ -834,7 +886,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             <Input
                                 style={{ width: '100%' }}
                                 placeholder="请输入购买套餐"
-                                disabled={editAble}
+                                disabled={editDisable}
                             />
                             </Form.Item>
                         </Col>
@@ -863,7 +915,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                                 style={{ width: '100%' }}
                                 placeholder="请输入任务佣金"
                                 addonBefore="￥"
-                                disabled={editAble}
+                                disabled={editDisable}
                             />
                             </Form.Item>
                         </Col>
@@ -892,7 +944,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                                 style={{ width: '100%' }}
                                 placeholder="请输入服务费"
                                 addonBefore="￥"
-                                disabled={editAble}
+                                disabled={editDisable}
                             />
                             </Form.Item>
                         </Col>
@@ -904,7 +956,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             label="发布时间"
                             // rules={[{ required: true, message: 'Please choose the dateTime' }]}
                             >
-                            <DatePicker disabled={editAble} style={{ width: '100%' }} onChange={onTaskTimeChange} showTime />
+                            <DatePicker disabled={editDisable} style={{ width: '100%' }} onChange={onTaskTimeChange} showTime />
                             </Form.Item>
                         </Col>
                         <Col span={12}>
@@ -913,7 +965,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             label="收货状态"
                             // rules={[{ required: true, message: 'Please choose the dateTime' }]}
                             >
-                            <Radio.Group  disabled={editAble}>
+                            <Radio.Group  disabled={editDisable}>
                                 <Radio value={0}>确认收货</Radio>
                                 <Radio value={1}>无需收货</Radio>
                             </Radio.Group>
@@ -941,28 +993,52 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             >
                                 
                             </Form.Item> */}
-                            <div className={styles.keywordsForm_name}>搜索词</div>
-                            { keywordList }
-                            {/* <keywordList />*/}
-                            <div className={styles.keywordsForm}>
-                                <div className={styles.keywordsForm_item}>
-                                    <div className={styles.keywordsForm_item_keyword}>
-                                        <Input
-                                            style={{ width: '100%' }}
-                                            placeholder="请输入搜索词"
-                                        />
-                                    </div>
-                                    <div className={styles.keywordsForm_item_number}>
-                                        <Input
-                                            style={{ width: '100%' }}
-                                            placeholder="请输入数量"
-                                        />
-                                    </div>
-                                    <div className={styles.keywordsForm_item_btn}>
-                                        <PlusCircleOutlined  className={styles.keywordsForm_item_btn_icon} />
+                            <Form
+                                layout="vertical" 
+                                hideRequiredMark
+                                ref={ keywordRef }
+                                form={ keywordForm }
+                            >
+                                <div className={styles.keywordsForm_name}>搜索词</div>
+                                { keywordList }
+                                { !editDisable?
+                                <div className={styles.keywordsForm}>
+                                    <div className={styles.keywordsForm_item}>
+                                        <div className={styles.keywordsForm_item_keyword}>
+                                            <Form.Item
+                                            name="keyword"
+                                            >
+                                                <Input
+                                                    style={{ width: '100%' }}
+                                                    placeholder="请输入搜索词"
+                                                    disabled={editDisable} 
+                                                />
+                                            </Form.Item>
+                                            
+                                        </div>
+                                        <div className={styles.keywordsForm_item_number}>
+                                            <Form.Item
+                                            name="number"
+                                            >
+                                                <Input
+                                                    style={{ width: '100%' }}
+                                                    placeholder="请输入数量"
+                                                    disabled={editDisable}
+                                                    type='number'
+                                                />
+                                            </Form.Item>
+                                            
+                                        </div>
+                                        <div className={styles.keywordsForm_item_btn} onClick={addKeywordItem}>
+                                            <PlusCircleOutlined  className={`${styles.keywordsForm_item_btn_icon} ${styles.add}`}/>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                                :<></>
+                                }
+                            </Form>
+                            
+                            
                         </Col>
                     </Row>
                     <Row gutter={16}>
@@ -971,7 +1047,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             name="goodsKeywords"
                             label="查文内容"
                             >
-                            <Input.TextArea rows={2} placeholder="请输入查文内容" disabled={editAble} />
+                            <Input.TextArea rows={2} placeholder="请输入查文内容" disabled={editDisable} />
                             </Form.Item>
                         </Col>
                     </Row>
@@ -981,7 +1057,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
                             name="sellerAsk"
                             label="商家要求"
                             >
-                            <Input.TextArea rows={4} placeholder="请输入商家要求" disabled={editAble} />
+                            <Input.TextArea rows={4} placeholder="请输入商家要求" disabled={editDisable} />
                             </Form.Item>
                         </Col>
                     </Row>

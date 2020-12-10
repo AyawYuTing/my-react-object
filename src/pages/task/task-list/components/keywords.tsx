@@ -10,7 +10,7 @@ const keywordList: React.FC<KeywordListProps> = (props) => {
         
     return (
         <>
-            
+            { props.children }
         </>
     );
 };

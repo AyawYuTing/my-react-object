@@ -112,6 +112,12 @@ export default defineConfig({
                   path: '/task/task-list',
                   component: './task/task-list',
                 },
+                {
+                  name: 'task-undone',
+                  icon: 'smile',
+                  path: '/task/task-undone',
+                  component: './task/task-undone',
+                },
               ]
             },
 
