@@ -319,7 +319,7 @@ const TaskList : React.FC<TaskProps> = (props) =>{
         const formValue = await detailRef.current!.validateFields();
         let form = {
             id:detailForm.id,isCard:0,taskTypeId:detailForm.taskTypeId,
-            platformId:detailForm.platformId,formula:'',keyword:keywordsList[0].keyword,number:keywordList[0].number,
+            platformId:detailForm.platformId,formula:'',keyword:keywordsList[0].keyword,number:keywordsList[0].number,
             taskKeyword:JSON.stringify(keywordsList),status:detailForm.status
         }
         form = Object.assign(formValue,form)

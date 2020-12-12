@@ -1,5 +1,5 @@
 import { history, Reducer, Effect } from 'umi';
-import { getTaskUndoneList } from './service'
+import { getTaskUndoneList,delTaskUndone,editForm,findKeywords } from './service'
 
 
 export interface StateType {
@@ -10,6 +10,9 @@ export interface TaskListModelType{
     state: StateType;
     effects: {
         getList: Effect;
+        delItems:Effect;
+        getKeywords:Effect;
+        edit:Effect;
     };
     reducers: {
         changeList: Reducer<StateType>;
@@ -38,6 +41,31 @@ const Model : TaskListModelType = {
             }   
             
         },
+        *delItems({ payload,callback }, { call, put }) {
+            const response = yield call(delTaskUndone, payload);
+            if(response.retCode===0){
+                if(callback){
+                    callback(response.data)
+                }
+            }   
+            
+        },
+        *getKeywords({ payload,callback},{call,put}) {
+            const response = yield call(findKeywords,payload);
+            if(response.retCode===0){
+                if(callback){
+                    callback(response.data)
+                }
+            }
+        },
+        *edit({payload,callback},{call,put}) {
+            const response = yield call(editForm,payload);
+            if(response.retCode==0){
+                if(callback){
+                    callback(response.data)
+                }
+            }
+        }
     },
     reducers:{
         changeList(state,action) {

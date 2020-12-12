@@ -107,10 +107,10 @@ export default defineConfig({
               icon: 'dashboard',
               routes:[
                 {
-                  name: 'task-list',
+                  name: 'task-pics',
                   icon: 'smile',
-                  path: '/task/task-list',
-                  component: './task/task-list',
+                  path: '/task/task-pics',
+                  component: './task/task-pics',
                 },
                 {
                   name: 'task-undone',
@@ -118,6 +118,13 @@ export default defineConfig({
                   path: '/task/task-undone',
                   component: './task/task-undone',
                 },
+                {
+                  name: 'task-list',
+                  icon: 'smile',
+                  path: '/task/task-list',
+                  component: './task/task-list',
+                },
+                
               ]
             },
 

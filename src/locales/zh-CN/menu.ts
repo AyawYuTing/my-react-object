@@ -32,6 +32,7 @@ export default {
   'menu.task': '任务管理',
   'menu.task.task-list': '任务列表',
   'menu.task.task-undone': '未完成任务',
+  'menu.task.task-pics': '任务图片类型',
   'menu.profile': '详情页',
   'menu.profile.basic': '基础详情页',
   'menu.profile.advanced': '高级详情页',
